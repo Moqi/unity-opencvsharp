@@ -13,57 +13,28 @@ public class WebCamTextureProxy : MonoBehaviour
 
     private IEnumerator Capture()
     {
-        var width = _webCamTexture.width;
-        var height = _webCamTexture.height;
-        var pixels = _webCamTexture.GetPixels();
-        //Debug.Log("Capturing...");
-        /*
-        Parallel.For(0, height * width, x =>
-        {
-            var i = x / height; //y
-            var j = x % width;  //x
-            Debug.Log(string.Format("{0}|{1}|{2}", x, i, j));
-            var pixel = pixels[j + i * width];
-            var col = new CvScalar(
-                (double)pixel.b * 255,
-                (double)pixel.g * 255,
-                (double)pixel.r * 255
-            );
+		while (true) {
+			var width = _webCamTexture.width;
+			var height = _webCamTexture.height;
+			var pixels = _webCamTexture.GetPixels();
+			Parallel.For(0, height, i =>
+			{
+				for (var j = 0; j < width; j++)
+				{
+					var pixel = pixels[j + i * width];
+					var col = new CvScalar
+					{
+						Val0 = (double)pixel.b * 255,
+						Val1 = (double)pixel.g * 255,
+						Val2 = (double)pixel.r * 255
+					};
 
-            _iplImage.Set2D(i, j, col);
-        });
-        for (var i = 0; i < height; i++)
-            for (var j = 0; j < width; j++)
-            {
-                var pixel = pixels[j + i * width];
-                var col = new CvScalar
-                {
-                    Val0 = (double)pixel.b * 255,
-                    Val1 = (double)pixel.g * 255,
-                    Val2 = (double)pixel.r * 255
-                };
-
-                _iplImage.Set2D(i, j, col);
-            }
-        */
-        Parallel.For(0, height, i =>
-        {
-            for (var j = 0; j < width; j++)
-            {
-                var pixel = pixels[j + i * width];
-                var col = new CvScalar
-                {
-                    Val0 = (double)pixel.b * 255,
-                    Val1 = (double)pixel.g * 255,
-                    Val2 = (double)pixel.r * 255
-                };
-
-                _iplImage.Set2D(i, j, col);
-            }
-        });
-        if (OnFrameReady != null) OnFrameReady.Invoke(_iplImage);
-        yield return null;
-        StartCoroutine(Capture());
+					_iplImage.Set2D(i, j, col);
+				}
+			});
+			if (OnFrameReady != null) OnFrameReady.Invoke(_iplImage);
+			yield return null;
+		}
     }
 
     public WebCamTextureProxy SetTargetTexture(WebCamTexture texture)

@@ -24,15 +24,13 @@ namespace UnityCV
 
         public static CvScalar ColorToBGRScalar(Color color)
         {
-            var doubles = new[]
-        {
-            (double) color.b*255,
-            (double) color.g*255,
-            (double) color.r*255
-        };
-            return new CvScalar(doubles[0], doubles[1], doubles[2]);
+            return new CvScalar(
+                color.b * 255d,
+                color.g * 255d,
+                color.r * 255d
+                );
         }
 
     }
- 
+
 }
