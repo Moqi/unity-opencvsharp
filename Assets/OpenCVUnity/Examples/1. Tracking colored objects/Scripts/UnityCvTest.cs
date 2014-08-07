@@ -10,7 +10,9 @@ public class UnityCvTest : MonoBehaviour
 {
 
     public BitDepth ImagesDepth = BitDepth.U8;
-    public Color ThreshFromColor, ThreshToColor, LineColor;
+    public Color ThreshFromColor, ThreshToColor;
+    public bool UpdateColorsEachFrame;
+    public bool ShowThresholdedImage;
     public Renderer TargetRenderer;
 
     public int RequestedWidth;
@@ -34,6 +36,7 @@ public class UnityCvTest : MonoBehaviour
         var imgThreshed = Cv.CreateImage(Cv.GetSize(img), ImagesDepth, 1);
         Cv.InRangeS(imgHsv, from, to, imgThreshed);
         Cv.ReleaseImage(imgHsv);
+        if (ShowThresholdedImage) Cv.ShowImage("Threshold", imgThreshed);
         return imgThreshed;
     }
 
@@ -49,13 +52,21 @@ public class UnityCvTest : MonoBehaviour
         _cvScalarFrom = UnityCvUtils.ColorToBGRScalar(ThreshFromColor);
         _cvScalarTo = UnityCvUtils.ColorToBGRScalar(ThreshToColor);
 
-        if (FollowerPrefab) _dummyTransform = (Instantiate(FollowerPrefab) as GameObject).transform;
+        if (FollowerPrefab) _dummyTransform = ((GameObject)Instantiate(FollowerPrefab)).transform;
+
+        if (ShowThresholdedImage) Cv.NamedWindow("Threshold", WindowMode.FreeRatio);
 
         WebCamTextureProxy.OnFrameReady += Process;
     }
 
     public void Process(IplImage frame)
     {
+        if (UpdateColorsEachFrame)
+        {
+            _cvScalarFrom = UnityCvUtils.ColorToBGRScalar(ThreshFromColor);
+            _cvScalarTo = UnityCvUtils.ColorToBGRScalar(ThreshToColor);
+        }
+
         var imgThresh = GetThresholdedImage(frame, _cvScalarFrom, _cvScalarTo);
 
         CvMoments moments;
@@ -76,6 +87,7 @@ public class UnityCvTest : MonoBehaviour
     public void OnDestroy()
     {
         WebCamTextureProxy.OnFrameReady -= Process;
+        Cv.DestroyAllWindows();
         TargetRenderer.sharedMaterial.mainTexture = null;
     }
 
